@@ -1,28 +1,37 @@
 package uk.gov.hmcts.reform.dev.entities;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Data
 @MappedSuperclass
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public abstract class BaseEntity {
 
-    // i don't really want to mess with the schema in case other services already agreed upon it
-    // but I do at least want to make it a bit more observable
     @Id
-    @Column(length = 26) // ULIDs are always 26 characters
+    @Column(length = 26)
     private String id;
 
+    @Builder.Default
     private LocalDateTime createdDate = LocalDateTime.now(); //timezone risk
+    @Builder.Default
     private LocalDateTime lastUpdatedDate = LocalDateTime.now();
 
     @PrePersist
     public void generateId() {
         if (this.id == null) {
-            // Generates a sortable ULID: e.g., 01ARZ3NDEKTSV4RRFFQ6KHNQES
             this.id = UlidCreator.getUlid().toString();
         }
     }
