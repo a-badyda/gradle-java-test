@@ -6,5 +6,6 @@ public enum Status {
     IN_PROGRESS,
     STOPPED,
     CANCELLED,
-    COMPLETED
+    COMPLETED,
+    DELETED //in case we want to 'delete' records from user view as filter but without actually getting rid of them
 }

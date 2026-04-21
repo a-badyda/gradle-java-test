@@ -2,18 +2,17 @@ package uk.gov.hmcts.reform.dev;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.notNullValue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-class SampleSmokeTest {
-    protected static final String CONTENT_TYPE_VALUE = "application/json";
+class CaseSmokeTest {
 
     @Value("${TEST_URL:http://localhost:8080}")
     private String testUrl;
@@ -25,15 +24,15 @@ class SampleSmokeTest {
     }
 
     @Test
-    void smokeTest() {
-        Response response = given()
+    @DisplayName("Smoke Test: Verify the Case API is reachable and returning data")
+    void shouldRetrieveCasesFromDatabase() {
+        given()
             .contentType(ContentType.JSON)
             .when()
-            .get()
+            .get("/v1/cases") //
             .then()
-            .extract().response();
-
-        Assertions.assertEquals(200, response.statusCode());
-        Assertions.assertTrue(response.asString().startsWith("Welcome"));
+            .statusCode(200) // Confirms the controller and service are wired
+            .body("content", notNullValue()) // Confirms DB connectivity and pagination
+            .log().ifValidationFails();
     }
 }

@@ -16,4 +16,5 @@ public class CaseDTO {
     private String status;
     //string more readable for output in json
     private String createdDate;
+    private String dueDate;
 }

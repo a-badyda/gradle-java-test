@@ -12,6 +12,10 @@ plugins {
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
 
+configurations {
+  mockitoAgent
+}
+
 java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(21)
@@ -181,6 +185,8 @@ dependencies {
 
   implementation 'org.liquibase:liquibase-core'
   runtimeOnly 'org.postgresql:postgresql'
+  testImplementation group: 'com.h2database', name: 'h2'
+  mockitoAgent group: 'org.mockito', name: 'mockito-core', version: '5.15.2'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.dev.Application'
@@ -199,5 +205,5 @@ rootProject.tasks.named("processSmokeTestResources") {
 }
 
 wrapper {
-    distributionType = Wrapper.DistributionType.ALL
+  distributionType = Wrapper.DistributionType.ALL
 }

@@ -1,10 +1,11 @@
-# HMCTS Dev Test Backend
-This will be the backend for the brand new HMCTS case management system. As a potential candidate we are leaving
-this in your hands. Please refer to the brief for the complete list of tasks! Complete as much as you can and be
-as creative as you want.
+# README
 
-You should be able to run `./gradlew build` to start with to ensure it builds successfully. Then from that you
-can run the service in IntelliJ (or your IDE of choice) or however you normally would.
+todo:
+actual readme with instructions on set up and startup
 
-There is an example endpoint provided to retrieve an example of a case. You are free to add/remove fields as you
-wish.
+some more thoughts about security
+real proper logs and audits
+check for some more owasp top 10 / best security practices
+check if code can be cleaner / refactored
+
+

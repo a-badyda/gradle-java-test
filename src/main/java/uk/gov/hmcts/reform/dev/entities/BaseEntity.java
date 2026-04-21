@@ -23,11 +23,13 @@ public abstract class BaseEntity {
     @Id
     @Column(length = 26)
     private String id;
-
     @Builder.Default
     private LocalDateTime createdDate = LocalDateTime.now(); //timezone risk
     @Builder.Default
     private LocalDateTime lastUpdatedDate = LocalDateTime.now();
+    //i'd like to add user logs too like 'createdBy' and 'updatedBy' but can't assume the payload too much
+    //private String createdBy;
+    //private String lastUpdatedBy;
 
     @PrePersist
     public void generateId() {

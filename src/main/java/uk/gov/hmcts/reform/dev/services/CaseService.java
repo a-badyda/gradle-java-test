@@ -10,7 +10,13 @@ import uk.gov.hmcts.reform.dev.exceptions.CaseNotFound;
 import uk.gov.hmcts.reform.dev.mappers.CaseMapper;
 import uk.gov.hmcts.reform.dev.models.CaseDTO;
 import uk.gov.hmcts.reform.dev.models.NewCaseDTO;
+import uk.gov.hmcts.reform.dev.models.Status;
+import uk.gov.hmcts.reform.dev.models.UpdateCaseDTO;
 import uk.gov.hmcts.reform.dev.repositories.CaseRepository;
+import uk.gov.hmcts.reform.dev.validation.CaseValidator;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +24,7 @@ public class CaseService {
 
     private final CaseRepository caseRepository;
     private final CaseMapper caseMapper;
+    private final CaseValidator caseValidator;
 
     public CaseDTO getById(String id) {
         var found = caseRepository.findById(id)
@@ -32,17 +39,60 @@ public class CaseService {
     @Transactional
     public CaseDTO add(NewCaseDTO request) {
 
-        //todo some kind of validation class too for the inputs ideally
+        caseValidator.validateNewCase(request);
 
         Case newCase = Case.builder()
             .caseNumber(request.getCaseNumber())
             .title(request.getTitle())
             .description(request.getDescription())
+            .dueDate(LocalDateTime.parse(request.getDueDate(), DateTimeFormatter.ISO_DATE_TIME))
             .build();
 
         Case savedCase = caseRepository.save(newCase);
+        return caseMapper.toDto(savedCase);
+    }
+
+    @Transactional
+    public CaseDTO update(String id, UpdateCaseDTO request) {
+
+        caseValidator.validateUpdate(request);
+        CaseDTO existingCase = this.getById(id);
+
+        Case updateCase = Case.builder()
+            .id(id)
+            .caseNumber(existingCase.getCaseNumber())
+            .description(request.getDescription())
+            .title(request.getTitle())
+            .status(request.getStatus())
+            .dueDate(LocalDateTime.parse(request.getDueDate(), DateTimeFormatter.ISO_DATE_TIME))
+            .lastUpdatedDate(LocalDateTime.now())
+            .build();
+
+        Case savedCase = caseRepository.save(updateCase);
 
         return caseMapper.toDto(savedCase);
     }
 
+    //sometimes you may want a record to be deleted for users view/interaction
+    // but for legal reasons to continue to exist.
+    public CaseDTO setStatusToDeleted(String id) {
+        CaseDTO existingCase = this.getById(id);
+        return this.update(
+            id,
+            new UpdateCaseDTO(
+                existingCase.getTitle(),
+                existingCase.getDescription(),
+                Status.DELETED,
+                existingCase.getDueDate()
+            )
+        );
+    }
+
+    //a method to actually delete the record - for GDPR reasons usually
+    public void actuallyDelete(String id) {
+        if (!caseRepository.existsById(id)) {
+            throw new CaseNotFound(id);
+        }
+        caseRepository.deleteById(id);
+    }
 }

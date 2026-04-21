@@ -8,7 +8,7 @@ management:
       show-details: "always"
       group:
         readiness:
-         include: "db"
+          include: "db"
   endpoints:
     web:
       base-path: /

@@ -9,15 +9,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import uk.gov.hmcts.reform.dev.models.CaseDTO;
 import uk.gov.hmcts.reform.dev.models.NewCaseDTO;
+import uk.gov.hmcts.reform.dev.models.UpdateCaseDTO;
 import uk.gov.hmcts.reform.dev.services.CaseService;
 
 import java.net.URI;
@@ -31,10 +34,10 @@ public class CaseController {
     @Autowired
     CaseService caseService;
 
-    //todo - add parameters for filtering - eg status / to-from date / search by title starting with?
+    //todo - add parameters for filtering - eg status / to-from date / search by title starting with
     @Operation(summary = "Get all cases with pagination")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved cases")
-    @GetMapping(value = "/get-all", produces = "application/json")
+    @GetMapping(value = "", produces = "application/json")
     public ResponseEntity<Page<CaseDTO>> getAllCases(
         @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
         Pageable pageable) {
@@ -61,19 +64,16 @@ public class CaseController {
 
         return ResponseEntity.created(location).body(createdCase);
     }
-    //
-    //    @PutMapping(value = "/update{id}", produces = "application/json")
-    //    public ResponseEntity<CaseDTO> updateCase(@PathVariable int id, ) {
-    //        return ok(new CaseDTO(1, "ABC12345", "Case Title",
-    //                                  "Case Description", "Case Status", LocalDateTime.now()
-    //        ));
-    //    }
-    //
-    //    //actually deleting forever seems like a bad idea, just a system status instead maybe?
-    //    //or just logs idk
-    //    @DeleteMapping(value = "/delete{id}", produces = "application/json")
-    //    public ResponseEntity<?> deleteCase(@PathVariable int id) {
-    //        return ResponseEntity.ok(caseService.delete(id))
-    //            .orElseGet(() -> notFound().build());
-    //    }
+
+    @PutMapping(value = "/update/{id}", produces = "application/json")
+    public ResponseEntity<CaseDTO> updateCase(@PathVariable String id, @Valid @RequestBody UpdateCaseDTO request) {
+        CaseDTO updatedCase = caseService.update(id, request);
+        return ResponseEntity.ok(updatedCase);
+    }
+
+    @DeleteMapping(value = "/delete/{id}", produces = "application/json")
+    public ResponseEntity<?> deleteCase(@PathVariable String id) {
+        caseService.actuallyDelete(id);
+        return ok().build();
+    }
 }
