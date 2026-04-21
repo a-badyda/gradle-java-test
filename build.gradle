@@ -150,6 +150,8 @@ ext {
 ext['snakeyaml.version'] = '2.2'
 
 dependencies {
+  implementation 'com.github.f4b6a3:ulid-creator:5.2.3'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
@@ -173,6 +175,9 @@ dependencies {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+
+  implementation 'org.liquibase:liquibase-core'
+  runtimeOnly 'org.postgresql:postgresql'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.dev.Application'
