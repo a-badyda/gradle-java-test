@@ -21,20 +21,21 @@ import uk.gov.hmcts.reform.dev.repositories.CaseRepository;
 import uk.gov.hmcts.reform.dev.validation.CaseValidator;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CaseServiceTest {
@@ -84,7 +85,7 @@ class CaseServiceTest {
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
-        Case.builder().id("generated-ulid").build();
+        Case.builder().id("generated-bulid").build();
 
         caseService.add(request);
 
@@ -116,8 +117,10 @@ class CaseServiceTest {
             .dueDate("<script>alert('xss')</script>") // Malicious payload
             .build();
 
-        doThrow(new InvalidCaseDataException("Date contains disallowed characters."))
-            .when(caseValidator).validateNewCase(request);
+        doThrow(new InvalidCaseDataException(
+            "Validation failed for new case",
+            Map.of("dueDate", "Invalid date format. Expected ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)")
+        )).when(caseValidator).validateNewCase(request);
 
         assertThrows(InvalidCaseDataException.class, () -> caseService.add(request));
     }
@@ -130,8 +133,10 @@ class CaseServiceTest {
             .dueDate("not-a-date")
             .build();
 
-        doThrow(new InvalidCaseDataException("Invalid date format."))
-            .when(caseValidator).validateNewCase(request);
+        doThrow(new InvalidCaseDataException(
+            "Validation failed for new case",
+            Map.of("dueDate", "Invalid date format. Expected ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)")
+        )).when(caseValidator).validateNewCase(request);
 
         assertThrows(InvalidCaseDataException.class, () -> caseService.add(request));
     }
@@ -191,9 +196,10 @@ class CaseServiceTest {
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
-        // Mock the validator to catch the malicious description
-        doThrow(new InvalidCaseDataException("Input contains disallowed patterns."))
-            .when(caseValidator).validateUpdate(request);
+        doThrow(new InvalidCaseDataException(
+            "Validation failed for update case",
+            Map.of("dueDate", "Invalid date format. Expected ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)")
+        )).when(caseValidator).validateUpdate(request);
 
         assertThrows(InvalidCaseDataException.class, () -> caseService.update(id, request));
         verify(caseRepository, never()).save(any());
@@ -210,8 +216,13 @@ class CaseServiceTest {
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
-        doThrow(new InvalidCaseDataException("Title exceeds maximum length."))
-            .when(caseValidator).validateUpdate(request);
+        doThrow(new InvalidCaseDataException(
+            "Validation failed for update case",
+            Map.of(
+                "title",
+                "Description exceeds maximum length of 250 characters"
+            )
+        )).when(caseValidator).validateUpdate(request);
 
         assertThrows(InvalidCaseDataException.class, () -> caseService.update(id, request));
     }
@@ -226,9 +237,10 @@ class CaseServiceTest {
             .dueDate("31-12-2026") // Wrong format (Not ISO)
             .build();
 
-        // The validator or the LocalDateTime.parse in the service will catch this
-        doThrow(new InvalidCaseDataException("Invalid date format."))
-            .when(caseValidator).validateUpdate(request);
+        doThrow(new InvalidCaseDataException(
+            "Validation failed for update case",
+            Map.of("dueDate", "Invalid date format. Expected ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)")
+        )).when(caseValidator).validateUpdate(request);
 
         assertThrows(InvalidCaseDataException.class, () -> caseService.update(id, request));
     }

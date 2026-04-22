@@ -45,7 +45,7 @@ public class CaseValidator {
         validateAndParseDate(request.getDueDate(), errors);
 
         if (!errors.isEmpty()) {
-            throw new InvalidCaseDataException("Validation failed for new case", errors);
+            throw new InvalidCaseDataException("Validation failed for update case", errors);
         }
     }
 
