@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.dev.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,15 +23,26 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
+/**
+ * Case Service manager - contains all CRUD methods, along with some specialised searches.
+ * Delegates validation to @Class CaseValidator
+ */
 public class CaseService {
 
     private final CaseRepository caseRepository;
     private final CaseMapper caseMapper;
     private final CaseValidator caseValidator;
 
-    public CaseDTO getById(String id) {
+    @Cacheable(value = "cases", key = "#id")
+    public CaseDTO findById(String id) {
         var found = caseRepository.findById(id)
             .orElseThrow(() -> new CaseNotFound(id));
+        return caseMapper.toDto(found);
+    }
+
+    public CaseDTO findByCaseNumber(String caseNumber) {
+        var found = caseRepository.findByCaseNumber(caseNumber)
+            .orElseThrow(() -> CaseNotFound.byCaseNumber(caseNumber));
         return caseMapper.toDto(found);
     }
 
@@ -53,10 +67,11 @@ public class CaseService {
     }
 
     @Transactional
+    @CachePut(value = "cases", key = "#id")
     public CaseDTO update(String id, UpdateCaseDTO request) {
 
         caseValidator.validateUpdate(request);
-        CaseDTO existingCase = this.getById(id);
+        CaseDTO existingCase = this.findById(id);
 
         Case updateCase = Case.builder()
             .id(id)
@@ -76,7 +91,7 @@ public class CaseService {
     //sometimes you may want a record to be deleted for users view/interaction
     // but for legal reasons to continue to exist.
     public CaseDTO setStatusToDeleted(String id) {
-        CaseDTO existingCase = this.getById(id);
+        CaseDTO existingCase = this.findById(id);
         return this.update(
             id,
             new UpdateCaseDTO(
@@ -89,6 +104,8 @@ public class CaseService {
     }
 
     //a method to actually delete the record - for GDPR reasons usually
+    @Transactional
+    @CacheEvict(value = "cases", key = "#id")
     public void actuallyDelete(String id) {
         if (!caseRepository.existsById(id)) {
             throw new CaseNotFound(id);

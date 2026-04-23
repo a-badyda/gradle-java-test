@@ -46,9 +46,14 @@ public class CaseController {
         return ok(cases);
     }
 
+    @GetMapping(value = "/casenumber/{caseNumber}", produces = "application/json")
+    public ResponseEntity<CaseDTO> findByCaseNumber(@PathVariable String caseNumber) {
+        return ok(caseService.findByCaseNumber(caseNumber));
+    }
+
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<CaseDTO> getById(@PathVariable String id) {
-        return ok(caseService.getById(id));
+    public ResponseEntity<CaseDTO> findById(@PathVariable String id) {
+        return ok(caseService.findById(id));
     }
 
     @PostMapping(value = "/add", consumes = "application/json", produces = "application/json")

@@ -62,7 +62,7 @@ class CaseFunctionalTest {
 
         UpdateCaseDTO updateRequest = UpdateCaseDTO.builder()
             .title("Updated Functional Title")
-            .status(Status.IN_PROGRESS)
+            .status(Status.DRAFT)
             .dueDate("2027-01-01T12:00:00.000Z")
             .build();
 
@@ -73,7 +73,7 @@ class CaseFunctionalTest {
             .put("/v1/cases/update/{id}", caseId)
             .then()
             .statusCode(200)
-            .body("status", equalTo("IN_PROGRESS"))
+            .body("status", equalTo("SUBMITTED"))
             .body("title", equalTo("Updated Functional Title"));
 
         given()

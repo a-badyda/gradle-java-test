@@ -12,6 +12,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * checks that incoming case data is legible and can be saved to the db
+ * checks for:
+ * - malicious characters in strings (title, description, due date case number)
+ * - strings being short enough to fit in the db fields (title : 250, description 2000, caseno : 50)
+ * - whether date field conforms to ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)
+ */
 @Component
 public class CaseValidator {
 
@@ -21,7 +28,19 @@ public class CaseValidator {
     );
     private static final int MAX_TITLE_LENGTH = 250;
     private static final int MAX_DESC_LENGTH = 2000;
+    private static final int MAX_CASENO_LENGTH = 50;
 
+    /**
+     * check fields of NewCaseDTO
+     * - strings cannot contain any malicious characters (checking for scripts/injections)
+     * - title must be 250 of fewer characters
+     * - description must be 2000 or fewer characters
+     * - case number must be 50 or fewer characters
+     * - due date must be ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)
+     *
+     * @param request new case data
+     * @throws InvalidCaseDataException a list of all issues in the request payload
+     */
     public void validateNewCase(NewCaseDTO request) {
         Map<String, String> errors = new HashMap<>();
 
@@ -30,6 +49,10 @@ public class CaseValidator {
 
         if (request.getCaseNumber() == null || request.getCaseNumber().isBlank()) {
             errors.put("caseNumber", "Case number is mandatory");
+        } else {
+            if (request.getCaseNumber().length() > MAX_CASENO_LENGTH) {
+                errors.put("caseNumber", "Title exceeds maximum length of " + MAX_CASENO_LENGTH + " characters");
+            }
         }
 
         if (!errors.isEmpty()) {
@@ -37,7 +60,16 @@ public class CaseValidator {
         }
     }
 
-    //todo: could probably restructure because the update and add new are so similar
+    /**
+     * check fields of UpdateCaseDTO
+     * - strings cannot contain any malicious characters (checking for scripts/injections)
+     * - title must be 250 of fewer characters
+     * - description must be 2000 or fewer characters
+     * - due date must be ISO-8601 (e.g., 2026-12-31T23:59:59.000Z)
+     *
+     * @param request case data to be updated
+     * @throws InvalidCaseDataException a list of all issues in the request payload
+     */
     public void validateUpdate(UpdateCaseDTO request) {
         Map<String, String> errors = new HashMap<>();
 

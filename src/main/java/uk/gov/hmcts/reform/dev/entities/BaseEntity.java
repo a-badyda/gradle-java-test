@@ -13,11 +13,16 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
+
 @Data
 @MappedSuperclass
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * Default DB entity - groups any common values like id, created and last updated dates.
+ * contains any shared methods
+ */
 public abstract class BaseEntity {
 
     @Id
@@ -27,7 +32,7 @@ public abstract class BaseEntity {
     private LocalDateTime createdDate = LocalDateTime.now(); //timezone risk
     @Builder.Default
     private LocalDateTime lastUpdatedDate = LocalDateTime.now();
-    //i'd like to add user logs too like 'createdBy' and 'updatedBy' but can't assume the payload too much
+    //i'd like to add user logs too like 'createdBy' and 'updatedBy' but don't have the time to add users / roles
     //private String createdBy;
     //private String lastUpdatedBy;
 

@@ -52,7 +52,7 @@ class CaseServiceTest {
 
     @Test
     @DisplayName("Should return CaseDTO when valid ID is provided")
-    void getById_Success() {
+    void findById_Success() {
         String id = "01KPRC5WE2CHJBD275T3CRQHH2";
         Case entity = Case.builder().id(id).title("Test Case").build();
         CaseDTO dto = CaseDTO.builder().id(id).title("Test Case").build();
@@ -60,7 +60,7 @@ class CaseServiceTest {
         when(caseRepository.findById(id)).thenReturn(Optional.of(entity));
         when(caseMapper.toDto(entity)).thenReturn(dto);
 
-        CaseDTO result = caseService.getById(id);
+        CaseDTO result = caseService.findById(id);
 
         assertNotNull(result);
         assertEquals(id, result.getId());
@@ -68,12 +68,21 @@ class CaseServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw CaseNotFound exception when case does not exist")
-    void getById_NotFound() {
+    @DisplayName("(get by case number) :Should throw CaseNotFound exception when case does not exist")
+    void findByCaseNumber_NotFound() {
         String id = "invalid-id";
         when(caseRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(CaseNotFound.class, () -> caseService.getById(id));
+        assertThrows(CaseNotFound.class, () -> caseService.findById(id));
+    }
+
+    @Test
+    @DisplayName("(get by ID): Should throw CaseNotFound exception when case does not exist")
+    void findById_NotFound() {
+        String id = "invalid-id";
+        when(caseRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(CaseNotFound.class, () -> caseService.findById(id));
     }
 
     @Test
@@ -149,7 +158,7 @@ class CaseServiceTest {
         UpdateCaseDTO request = UpdateCaseDTO.builder()
             .title("Updated Title")
             .description("Updated Description")
-            .status(Status.IN_PROGRESS)
+            .status(Status.SUBMITTED)
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
@@ -181,7 +190,7 @@ class CaseServiceTest {
         verify(caseValidator).validateUpdate(request);
         verify(caseRepository).save(argThat(c ->
                                                 c.getId().equals(id)
-                                                    && c.getStatus().equals(Status.IN_PROGRESS)
+                                                    && c.getStatus().equals(Status.SUBMITTED)
         ));
     }
 
@@ -192,7 +201,7 @@ class CaseServiceTest {
         UpdateCaseDTO request = UpdateCaseDTO.builder()
             .title("Normal Title")
             .description("<img src=x onerror=alert(1)>") // XSS Payload
-            .status(Status.IN_PROGRESS)
+            .status(Status.SUBMITTED)
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
@@ -212,7 +221,7 @@ class CaseServiceTest {
         String longTitle = "A".repeat(251); // One over the limit
         UpdateCaseDTO request = UpdateCaseDTO.builder()
             .title(longTitle)
-            .status(Status.IN_PROGRESS)
+            .status(Status.SUBMITTED)
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
@@ -233,7 +242,7 @@ class CaseServiceTest {
         String id = "01KPRC5WE2CHJBD275T3CRQHH2";
         UpdateCaseDTO request = UpdateCaseDTO.builder()
             .title("Title")
-            .status(Status.IN_PROGRESS)
+            .status(Status.SUBMITTED)
             .dueDate("31-12-2026") // Wrong format (Not ISO)
             .build();
 
@@ -251,7 +260,7 @@ class CaseServiceTest {
         String id = "non-existent-id";
         UpdateCaseDTO request = UpdateCaseDTO.builder()
             .title("Title")
-            .status(Status.IN_PROGRESS)
+            .status(Status.SUBMITTED)
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 

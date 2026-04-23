@@ -23,13 +23,12 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class Case extends BaseEntity {
 
-    //i'd like to add a field of 'assignedTo' but I can't know that it'll be coming back from UI
     private String caseNumber;
     private String title;
     private String description;
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Status status = Status.PENDING;
+    private Status status = Status.DRAFT;
     private LocalDateTime dueDate;
 
 }

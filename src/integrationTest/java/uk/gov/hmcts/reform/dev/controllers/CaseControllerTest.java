@@ -26,13 +26,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 @WebMvcTest(CaseController.class)
 class CaseControllerTest {
@@ -77,12 +77,30 @@ class CaseControllerTest {
             .title("Specific Case")
             .build();
 
-        when(caseService.getById(id)).thenReturn(caseDto);
+        when(caseService.findById(id)).thenReturn(caseDto);
 
         mockMvc.perform(get("/v1/cases/{id}", id))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(id))
             .andExpect(jsonPath("$.title").value("Specific Case"));
+    }
+
+    @Test
+    @DisplayName("GET /v1/cases/casenumber/{caseNumber} - Should return a single case")
+    void shouldReturnCaseByCaseNumber() throws Exception {
+        String caseNumber = "case number 12345";
+        String id = "01KPRC5WE2CHJBD275T3CRQHH2";
+        CaseDTO caseDto = CaseDTO.builder()
+            .id(id)
+            .caseNumber(caseNumber)
+            .build();
+
+        when(caseService.findByCaseNumber(caseNumber)).thenReturn(caseDto);
+
+        mockMvc.perform(get("/v1/cases/casenumber/{caseNumber}", caseNumber))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(id))
+            .andExpect(jsonPath("$.caseNumber").value(caseNumber));
     }
 
     @Test
@@ -115,7 +133,7 @@ class CaseControllerTest {
         String id = "EXISTING-ID";
         UpdateCaseDTO request = UpdateCaseDTO.builder()
             .title("Updated Title")
-            .status(Status.IN_PROGRESS)
+            .status(Status.DRAFT)
             .dueDate("2026-12-31T23:59:59.000Z")
             .build();
 
@@ -144,9 +162,19 @@ class CaseControllerTest {
     @DisplayName("GET /v1/cases/{id} - Should return 404 when case not found")
     void shouldReturn404WhenNotFound() throws Exception {
         String id = "missing-id";
-        when(caseService.getById(id)).thenThrow(new CaseNotFound(id));
+        when(caseService.findById(id)).thenThrow(new CaseNotFound(id));
 
         mockMvc.perform(get("/v1/cases/{id}", id))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /v1/cases/casenumber/{caseNumber} - Should return 404 when case not found")
+    void findByCaseNumberShouldReturn404WhenNotFound() throws Exception {
+        String caseNumber = "missing-caseNumber";
+        when(caseService.findByCaseNumber(caseNumber)).thenThrow(CaseNotFound.byCaseNumber(caseNumber));
+
+        mockMvc.perform(get("/v1/cases/casenumber/{caseNumber}", caseNumber))
             .andExpect(status().isNotFound());
     }
 
@@ -207,7 +235,7 @@ class CaseControllerTest {
 
         when(caseService.add(request)).thenThrow(new InvalidCaseDataException(
             "message",
-            Map.of("title","Title exceeds maximum length of 250 characters")
+            Map.of("title", "Title exceeds maximum length of 250 characters")
         ));
 
         mockMvc.perform(post("/v1/cases/add")

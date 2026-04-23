@@ -8,6 +8,9 @@ import java.util.Map;
 
 @Getter
 @ResponseStatus(HttpStatus.BAD_REQUEST)
+/**
+ * Handles any issues with validation - contains all issues in an object in a map of errors
+ */
 public class InvalidCaseDataException extends RuntimeException {
 
     private final Map<String, String> errors;
